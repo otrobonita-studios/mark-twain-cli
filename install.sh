@@ -50,7 +50,7 @@ LATEST_RELEASE_URL="https://api.github.com/repos/$REPO/releases/latest"
 RELEASE_JSON=$(curl -s "$LATEST_RELEASE_URL")
 
 # Extract tag name
-TAG=$(echo "$RELEASE_JSON" | grep -o '"tag_name": "[^"]*' | grep -o '[^"]*$')
+TAG=$(echo "$RELEASE_JSON" | grep -o '"tag_name": "[^"]*' | grep -o '[^"]*$' || echo "")
 
 if [ -z "$TAG" ]; then
     echo "Warning: Could not fetch latest release tag. Using fallback 'v0.1.0'."
