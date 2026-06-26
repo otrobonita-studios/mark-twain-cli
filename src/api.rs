@@ -37,7 +37,7 @@ pub struct SearchResult {
 pub struct ChunkPayload {
     pub text: String,
     pub filename: String,
-    pub chunk_index: usize,
+    pub chunk_index: Option<usize>,
 }
 
 pub struct ApiClient {
@@ -73,6 +73,18 @@ impl ApiClient {
         let url = format!("{}/api/research", self.base_url.trim_end_matches('/'));
         let payload = SearchRequest {
             action: "search".to_string(),
+            query: query.to_string(),
+            limit,
+        };
+        let mut req = self.client.post(&url).json(&payload);
+        req = self.add_auth_headers(req);
+        req.send().await?.json().await
+    }
+
+    pub async fn keyword_search(&self, query: &str, limit: usize) -> Result<SearchResponse, reqwest::Error> {
+        let url = format!("{}/api/research", self.base_url.trim_end_matches('/'));
+        let payload = SearchRequest {
+            action: "keyword".to_string(),
             query: query.to_string(),
             limit,
         };

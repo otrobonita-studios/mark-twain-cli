@@ -86,7 +86,7 @@ pub async fn analyze_style_flow(api_client: &ApiClient, text: &str) {
                         idx + 1,
                         result.score * 100.0,
                         result.payload.filename.green(),
-                        result.payload.chunk_index
+                        result.payload.chunk_index.unwrap_or(0)
                     );
                 }
                 println!("\n{}", "Nearest Matching Fragment:".white().bold());
@@ -111,9 +111,10 @@ pub async fn run_interactive_loop(api_client: &ApiClient) {
     let choices = &[
         "1. View Database Metadata",
         "2. Semantic Search",
-        "3. Analyze Text Style",
-        "4. Show Help / Instructions",
-        "5. Exit",
+        "3. Exact Keyword Search",
+        "4. Analyze Text Style",
+        "5. Show Help / Instructions",
+        "6. Exit",
     ];
 
     loop {
@@ -168,7 +169,7 @@ pub async fn run_interactive_loop(api_client: &ApiClient) {
                                         idx + 1,
                                         r.score.to_string().green(),
                                         r.payload.filename.yellow(),
-                                        r.payload.chunk_index
+                                        r.payload.chunk_index.unwrap_or(0)
                                     );
                                     println!("{}", r.payload.text.dimmed());
                                     println!("{}", "-".repeat(50).black());
@@ -184,6 +185,40 @@ pub async fn run_interactive_loop(api_client: &ApiClient) {
                 println!();
             }
             Ok(Some(2)) => {
+                let query: Result<String, _> = Input::with_theme(&ColorfulTheme::default())
+                    .with_prompt("Enter exact word/phrase to match")
+                    .interact_text();
+
+                if let Ok(q) = query {
+                    let spinner = show_spinner("Running exact keyword search...");
+                    match api_client.keyword_search(&q, 5).await {
+                        Ok(res) => {
+                            spinner.finish_and_clear();
+                            println!("\n{} '{}':", "Exact Matches for".bold(), q.cyan());
+                            if res.results.is_empty() {
+                                println!("{}", "No matching results found.".yellow());
+                            } else {
+                                for (idx, r) in res.results.iter().enumerate() {
+                                    println!(
+                                        "\n[Match #{}] Source: {} (Chunk #{})",
+                                        idx + 1,
+                                        r.payload.filename.yellow(),
+                                        r.payload.chunk_index.unwrap_or(0)
+                                    );
+                                    println!("{}", r.payload.text.dimmed());
+                                    println!("{}", "-".repeat(50).black());
+                                }
+                            }
+                        }
+                        Err(e) => {
+                            spinner.finish_and_clear();
+                            println!("{} {}", "Error:".red().bold(), e);
+                        }
+                    }
+                }
+                println!();
+            }
+            Ok(Some(3)) => {
                 let text: Result<String, _> = Input::with_theme(&ColorfulTheme::default())
                     .with_prompt("Enter the text to analyze")
                     .interact_text();
@@ -193,7 +228,7 @@ pub async fn run_interactive_loop(api_client: &ApiClient) {
                 }
                 println!();
             }
-            Ok(Some(3)) => {
+            Ok(Some(4)) => {
                 println!("\n{}", "=== INTERACTIVE TUI HELP & USAGE ===".yellow().bold());
                 println!("- Use the {} keys or press the corresponding number to navigate.", "Up/Down".cyan());
                 println!("- Press {} to select an option.", "Enter".cyan());
@@ -203,7 +238,7 @@ pub async fn run_interactive_loop(api_client: &ApiClient) {
                 println!("- To force-exit at any time, press {}.", "Ctrl+C".red());
                 println!("====================================\n");
             }
-            Ok(Some(4)) | Ok(None) => {
+            Ok(Some(5)) | Ok(None) => {
                 println!("{}", "Goodbye!".cyan());
                 break;
             }

@@ -29,12 +29,27 @@ async fn main() {
     let api_client = ApiClient::new(base_url.clone(), api_key);
 
     match args.command {
-        Some(Commands::Search { query, limit }) => {
-            let spinner = ui::show_spinner(&format!("Searching for similarity to '{}'...", query));
-            match api_client.search(&query, limit).await {
+        Some(Commands::Search { query, limit, exact }) => {
+            let spinner = if exact {
+                ui::show_spinner(&format!("Searching for exact keyword matches for '{}'...", query))
+            } else {
+                ui::show_spinner(&format!("Searching for similarity to '{}'...", query))
+            };
+
+            let search_result = if exact {
+                api_client.keyword_search(&query, limit).await
+            } else {
+                api_client.search(&query, limit).await
+            };
+
+            match search_result {
                 Ok(res) => {
                     spinner.finish_and_clear();
-                    println!("\n{} '{}' (Limit {}):", "Search Results for".bold(), query.cyan(), limit);
+                    if exact {
+                        println!("\n{} '{}' (Exact Match, Limit {}):", "Search Results for".bold(), query.cyan(), limit);
+                    } else {
+                        println!("\n{} '{}' (Semantic, Limit {}):", "Search Results for".bold(), query.cyan(), limit);
+                    }
                     if res.results.is_empty() {
                         println!("{}", "No matching results found.".yellow());
                     } else {
@@ -44,7 +59,7 @@ async fn main() {
                                 idx + 1,
                                 r.score.to_string().green(),
                                 r.payload.filename.yellow(),
-                                r.payload.chunk_index
+                                r.payload.chunk_index.unwrap_or(0)
                             );
                             println!("{}", r.payload.text.dimmed());
                             println!("{}", "-".repeat(50).black());

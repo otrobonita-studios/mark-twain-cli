@@ -25,6 +25,9 @@ pub enum Commands {
 
         #[arg(short, long, default_value_t = 5, help = "Max number of results to return")]
         limit: usize,
+
+        #[arg(short, long, help = "Use exact keyword matching (full-text search) instead of semantic search")]
+        exact: bool,
     },
 
     #[command(name = "analyze-style", about = "Analyze the style of a text snippet against Mark Twain's profile")]
