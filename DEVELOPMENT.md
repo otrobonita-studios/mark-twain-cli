@@ -21,6 +21,23 @@ This document describes how to build, test, and release the **Mark Twain CLI** t
    ```
 3. The binary will be compiled to `target/release/mark-twain-cli` (or `mark-twain-cli.exe` on Windows).
 
+### Running & Installing Locally
+
+You can run the compiled binary directly:
+* **Windows (PowerShell)**: `.\target\release\mark-twain-cli.exe`
+* **macOS / Linux**: `./target/release/mark-twain-cli`
+
+#### Make it available globally:
+To run the CLI from any directory without typing the full path, copy the binary to a directory already in your `PATH` (such as your Rust cargo bin directory):
+* **Windows (PowerShell)**:
+  ```powershell
+  Copy-Item .\target\release\mark-twain-cli.exe C:\Users\Dindator\.cargo\bin\
+  ```
+* **macOS / Linux**:
+  ```bash
+  cp target/release/mark-twain-cli ~/.cargo/bin/
+  ```
+
 ---
 
 ## Release Checklist
