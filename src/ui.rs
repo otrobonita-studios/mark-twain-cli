@@ -110,7 +110,8 @@ pub async fn run_interactive_loop(api_client: &ApiClient) {
         "1. View Database Metadata",
         "2. Semantic Search",
         "3. Analyze Text Style",
-        "4. Exit",
+        "4. Show Help / Instructions",
+        "5. Exit",
     ];
 
     loop {
@@ -190,7 +191,17 @@ pub async fn run_interactive_loop(api_client: &ApiClient) {
                 }
                 println!();
             }
-            Ok(Some(3)) | Ok(None) => {
+            Ok(Some(3)) => {
+                println!("\n{}", "=== INTERACTIVE TUI HELP & USAGE ===".yellow().bold());
+                println!("- Use the {} keys or press the corresponding number to navigate.", "Up/Down".cyan());
+                println!("- Press {} to select an option.", "Enter".cyan());
+                println!("- Inside prompts (Search / Style Analysis):");
+                println!("  * Type your text and press {} to run the query.", "Enter".cyan());
+                println!("  * If you want to abort, you can leave it blank and press Enter to return here.");
+                println!("- To force-exit at any time, press {}.", "Ctrl+C".red());
+                println!("====================================\n");
+            }
+            Ok(Some(4)) | Ok(None) => {
                 println!("{}", "Goodbye!".cyan());
                 break;
             }
