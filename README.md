@@ -59,6 +59,21 @@ mark-twain-cli analyze-style --text "Well, the first week went by, and we didn't
 ```
 *Shortcuts:* `mark-twain-cli analyze-style -t "..."`
 
+### 4. Getting Help
+The CLI comes with built-in interactive help documentation:
+* **Global Help**: View all available commands, options, and global flags:
+  ```bash
+  mark-twain-cli --help
+  ```
+* **Search Help**: View parameters accepted by the semantic search command (e.g. `--limit`, `--query`):
+  ```bash
+  mark-twain-cli search --help
+  ```
+* **Style Analysis Help**: View instructions for the style analysis command:
+  ```bash
+  mark-twain-cli analyze-style --help
+  ```
+
 ---
 
 ## Development
