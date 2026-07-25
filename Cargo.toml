@@ -2,6 +2,11 @@
 name = "mark-twain-cli"
 version = "0.1.0"
 edition = "2024"
+description = "A CLI to run semantic search and style analysis against Mark Twain's writing via a vector database API"
+license = "Apache-2.0"
+repository = "https://github.com/otrobonita-studios/mark-twain-cli"
+keywords = ["mark-twain", "cli", "nlp", "semantic-search", "literary"]
+categories = ["command-line-utilities", "text-processing"]
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
