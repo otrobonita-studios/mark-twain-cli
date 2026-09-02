@@ -49,42 +49,21 @@ async fn main() {
                 api_client.search(&query, limit).await
             };
 
+            spinner.finish_and_clear();
+
             match search_result {
                 Ok(res) => {
-                    spinner.finish_and_clear();
-                    if exact {
-                        println!(
-                            "\n{} '{}' (Exact Match, Limit {}):",
-                            "Search Results for".bold(),
-                            query.cyan(),
-                            limit
-                        );
-                    } else {
-                        println!(
-                            "\n{} '{}' (Semantic, Limit {}):",
-                            "Search Results for".bold(),
-                            query.cyan(),
-                            limit
-                        );
-                    }
-                    if res.results.is_empty() {
-                        println!("{}", "No matching results found.".yellow());
-                    } else {
-                        for (idx, r) in res.results.iter().enumerate() {
-                            println!(
-                                "\n[Result #{}] Score: {:.4} | Source: {} (Chunk #{})",
-                                idx + 1,
-                                r.score.to_string().green(),
-                                r.payload.filename.yellow(),
-                                r.payload.chunk_index.unwrap_or(0)
-                            );
-                            println!("{}", r.payload.text.dimmed());
-                            println!("{}", "-".repeat(50).black());
-                        }
-                    }
+                    let mode = if exact { "Exact Match" } else { "Semantic" };
+                    println!(
+                        "\n{} '{}' ({}, Limit {}):",
+                        "Search Results for".bold(),
+                        query.cyan(),
+                        mode,
+                        limit
+                    );
+                    ui::print_results(&res.results, !exact);
                 }
                 Err(e) => {
-                    spinner.finish_and_clear();
                     println!("{} {}", "API Error:".red().bold(), e);
                 }
             }
