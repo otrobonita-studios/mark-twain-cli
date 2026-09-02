@@ -51,7 +51,7 @@ pub enum Commands {
 
     #[command(
         name = "analyze-style",
-        about = "Analyze the style of a text snippet against Mark Twain's profile"
+        about = "Find the passages in the Twain corpus closest to a piece of text"
     )]
     AnalyzeStyle {
         #[arg(short, long, help = "The text to analyze")]

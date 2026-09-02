@@ -9,7 +9,7 @@ Built with Rust, this tool is optimized for zero-dependency execution on target 
 ## Features
 * 📊 **Database Metadata**: View collection info, point count, active models, and dimensions.
 * 🔍 **Semantic Search**: Run natural language queries directly against the vector space.
-* ✍️ **Style Analysis**: Compare stylistic fingerprints of arbitrary text snippets against Mark Twain's linguistic profile.
+* ✍️ **Corpus Proximity**: Find the passages in Twain's work semantically closest to a text snippet, with real similarity scores. It reports proximity to the indexed corpus — not a judgement about authorship.
 * 🕹️ **Interactive TUI Mode**: A guided menu-driven interface with auto-loaders and smooth exits.
 * ⚡ **Optimized Binary Size**: Highly tuned production builds utilizing LTO and size optimization flags.
 
@@ -68,8 +68,8 @@ mark-twain-cli search --query "river at night" --limit 5
 ```
 *Shortcuts:* `mark-twain-cli search -q "river at night" -l 5`
 
-### 3. Style Analysis Command
-Analyze text style:
+### 3. Corpus Proximity Command
+Find the closest passages to a piece of text:
 ```bash
 mark-twain-cli analyze-style --text "Well, the first week went by, and we didn't do much..."
 ```
