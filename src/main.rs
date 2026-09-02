@@ -29,9 +29,16 @@ async fn main() {
     let api_client = ApiClient::new(base_url.clone(), api_key);
 
     match args.command {
-        Some(Commands::Search { query, limit, exact }) => {
+        Some(Commands::Search {
+            query,
+            limit,
+            exact,
+        }) => {
             let spinner = if exact {
-                ui::show_spinner(&format!("Searching for exact keyword matches for '{}'...", query))
+                ui::show_spinner(&format!(
+                    "Searching for exact keyword matches for '{}'...",
+                    query
+                ))
             } else {
                 ui::show_spinner(&format!("Searching for similarity to '{}'...", query))
             };
@@ -46,9 +53,19 @@ async fn main() {
                 Ok(res) => {
                     spinner.finish_and_clear();
                     if exact {
-                        println!("\n{} '{}' (Exact Match, Limit {}):", "Search Results for".bold(), query.cyan(), limit);
+                        println!(
+                            "\n{} '{}' (Exact Match, Limit {}):",
+                            "Search Results for".bold(),
+                            query.cyan(),
+                            limit
+                        );
                     } else {
-                        println!("\n{} '{}' (Semantic, Limit {}):", "Search Results for".bold(), query.cyan(), limit);
+                        println!(
+                            "\n{} '{}' (Semantic, Limit {}):",
+                            "Search Results for".bold(),
+                            query.cyan(),
+                            limit
+                        );
                     }
                     if res.results.is_empty() {
                         println!("{}", "No matching results found.".yellow());

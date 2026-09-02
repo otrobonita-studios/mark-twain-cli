@@ -69,7 +69,11 @@ impl ApiClient {
         req.send().await?.json().await
     }
 
-    pub async fn search(&self, query: &str, limit: usize) -> Result<SearchResponse, reqwest::Error> {
+    pub async fn search(
+        &self,
+        query: &str,
+        limit: usize,
+    ) -> Result<SearchResponse, reqwest::Error> {
         let url = format!("{}/api/research", self.base_url.trim_end_matches('/'));
         let payload = SearchRequest {
             action: "search".to_string(),
@@ -81,7 +85,11 @@ impl ApiClient {
         req.send().await?.json().await
     }
 
-    pub async fn keyword_search(&self, query: &str, limit: usize) -> Result<SearchResponse, reqwest::Error> {
+    pub async fn keyword_search(
+        &self,
+        query: &str,
+        limit: usize,
+    ) -> Result<SearchResponse, reqwest::Error> {
         let url = format!("{}/api/research", self.base_url.trim_end_matches('/'));
         let payload = SearchRequest {
             action: "keyword".to_string(),

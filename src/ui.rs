@@ -1,6 +1,6 @@
 use crate::api::ApiClient;
 use colored::*;
-use dialoguer::{theme::ColorfulTheme, Input, Select};
+use dialoguer::{Input, Select, theme::ColorfulTheme};
 use indicatif::{ProgressBar, ProgressStyle};
 use std::time::Duration;
 
@@ -8,14 +8,52 @@ use std::time::Duration;
 pub fn print_splash() {
     println!();
     println!();
-    println!("{}", "  █   █  ███  ████  █   █    █████ █   █  ███  ███ █   █     ███  █     ███  ".truecolor(217, 163, 74).on_truecolor(29, 22, 17).bold());
-    println!("{}", "  ██ ██ █   █ █   █ █  █       █   █   █ █   █  █  ██  █    █     █      █  ".truecolor(217, 163, 74).on_truecolor(29, 22, 17).bold());
-    println!("{}", "  █ █ █ █████ ████  ███        █   █ █ █ █████  █  █ █ █    █     █      █  ".truecolor(217, 163, 74).on_truecolor(29, 22, 17).bold());
-    println!("{}", "  █   █ █   █ █  █  █  █       █   ██ ██ █   █  █  █  ██    █     █      █  ".truecolor(217, 163, 74).on_truecolor(29, 22, 17).bold());
-    println!("{}", "  █   █ █   █ █   █ █   █      █   █   █ █   █ ███ █   █     ███  █████ ███  ".truecolor(217, 163, 74).on_truecolor(29, 22, 17).bold());
+    println!(
+        "{}",
+        "  █   █  ███  ████  █   █    █████ █   █  ███  ███ █   █     ███  █     ███  "
+            .truecolor(217, 163, 74)
+            .on_truecolor(29, 22, 17)
+            .bold()
+    );
+    println!(
+        "{}",
+        "  ██ ██ █   █ █   █ █  █       █   █   █ █   █  █  ██  █    █     █      █  "
+            .truecolor(217, 163, 74)
+            .on_truecolor(29, 22, 17)
+            .bold()
+    );
+    println!(
+        "{}",
+        "  █ █ █ █████ ████  ███        █   █ █ █ █████  █  █ █ █    █     █      █  "
+            .truecolor(217, 163, 74)
+            .on_truecolor(29, 22, 17)
+            .bold()
+    );
+    println!(
+        "{}",
+        "  █   █ █   █ █  █  █  █       █   ██ ██ █   █  █  █  ██    █     █      █  "
+            .truecolor(217, 163, 74)
+            .on_truecolor(29, 22, 17)
+            .bold()
+    );
+    println!(
+        "{}",
+        "  █   █ █   █ █   █ █   █      █   █   █ █   █ ███ █   █     ███  █████ ███  "
+            .truecolor(217, 163, 74)
+            .on_truecolor(29, 22, 17)
+            .bold()
+    );
     println!();
-    println!("{}", "  Interactive client for the Vector Research API".truecolor(217, 163, 74).italic());
-    println!("{}", "  --------------------------------------------------".truecolor(217, 163, 74));
+    println!(
+        "{}",
+        "  Interactive client for the Vector Research API"
+            .truecolor(217, 163, 74)
+            .italic()
+    );
+    println!(
+        "{}",
+        "  --------------------------------------------------".truecolor(217, 163, 74)
+    );
 }
 
 // Runs a spinner for a future or task
@@ -35,13 +73,13 @@ pub fn show_spinner(message: &str) -> ProgressBar {
 // Helper to run a mocked/interactive style analysis using the search API to find stylistic matches
 pub async fn analyze_style_flow(api_client: &ApiClient, text: &str) {
     let spinner = show_spinner("Analyzing stylistic fingerprint against Mark Twain's profile...");
-    
+
     // Find the closest semantic/stylistic matches
     match api_client.search(text, 3).await {
         Ok(res) => {
             spinner.finish_and_clear();
             println!("\n{}", "=== STYLISTIC ANALYSIS REPORT ===".green().bold());
-            
+
             // Calculate simple stylistic markers
             let words: Vec<&str> = text.split_whitespace().collect();
             let word_count = words.len();
@@ -50,23 +88,29 @@ pub async fn analyze_style_flow(api_client: &ApiClient, text: &str) {
             } else {
                 0.0
             };
-            
+
             let exclamations = text.matches('!').count();
             let questions = text.matches('?').count();
             let hyphens = text.matches('-').count();
 
-            println!("{:<30} {}", "Input Word Count:".white(), word_count.to_string().cyan());
+            println!(
+                "{:<30} {}",
+                "Input Word Count:".white(),
+                word_count.to_string().cyan()
+            );
             println!("{:<30} {:.2}", "Average Word Length:".white(), avg_word_len);
-            
+
             // Formulate style notes based on punctuation and word count
             let mut style_notes = Vec::new();
             if avg_word_len > 6.0 {
                 style_notes.push("High vocabulary density and complex syllable structures.");
             } else {
-                style_notes.push("Simple, direct, and colloquial phrasing (characteristic of Twain).");
+                style_notes
+                    .push("Simple, direct, and colloquial phrasing (characteristic of Twain).");
             }
             if exclamations > 0 || questions > 0 {
-                style_notes.push("Dramatic dialogic markers with highly active conversational tone.");
+                style_notes
+                    .push("Dramatic dialogic markers with highly active conversational tone.");
             }
             if hyphens > 1 {
                 style_notes.push("Frequent compounding and structural pauses.");
@@ -90,9 +134,15 @@ pub async fn analyze_style_flow(api_client: &ApiClient, text: &str) {
                     );
                 }
                 println!("\n{}", "Nearest Matching Fragment:".white().bold());
-                println!("{}", format!("\"{}\"", best_match.payload.text).italic().dimmed());
+                println!(
+                    "{}",
+                    format!("\"{}\"", best_match.payload.text).italic().dimmed()
+                );
             } else {
-                println!("\n{}", "No direct matches found in the active corpus to compare style.".red());
+                println!(
+                    "\n{}",
+                    "No direct matches found in the active corpus to compare style.".red()
+                );
             }
             println!("{}", "=================================".green().bold());
         }
@@ -136,10 +186,18 @@ pub async fn run_interactive_loop(api_client: &ApiClient) {
                         if let Some(vc) = meta.vectors_count {
                             println!("{:<20} {}", "Vectors Count:", vc.to_string().yellow());
                         }
-                        println!("{:<20} {}", "Points Count:", meta.points_count.to_string().yellow());
+                        println!(
+                            "{:<20} {}",
+                            "Points Count:",
+                            meta.points_count.to_string().yellow()
+                        );
                         println!("{:<20} {}", "Vector Dimension:", meta.vector_size);
                         println!("{:<20} {}", "Distance Metric:", meta.distance);
-                        println!("{:<20} {}", "Embedding Model:", meta.embedding_model.magenta());
+                        println!(
+                            "{:<20} {}",
+                            "Embedding Model:",
+                            meta.embedding_model.magenta()
+                        );
                         println!("{}", "=========================".cyan().bold());
                     }
                     Err(e) => {
@@ -229,12 +287,23 @@ pub async fn run_interactive_loop(api_client: &ApiClient) {
                 println!();
             }
             Ok(Some(4)) => {
-                println!("\n{}", "=== INTERACTIVE TUI HELP & USAGE ===".yellow().bold());
-                println!("- Use the {} keys or press the corresponding number to navigate.", "Up/Down".cyan());
+                println!(
+                    "\n{}",
+                    "=== INTERACTIVE TUI HELP & USAGE ===".yellow().bold()
+                );
+                println!(
+                    "- Use the {} keys or press the corresponding number to navigate.",
+                    "Up/Down".cyan()
+                );
                 println!("- Press {} to select an option.", "Enter".cyan());
                 println!("- Inside prompts (Search / Style Analysis):");
-                println!("  * Type your text and press {} to run the query.", "Enter".cyan());
-                println!("  * If you want to abort, you can leave it blank and press Enter to return here.");
+                println!(
+                    "  * Type your text and press {} to run the query.",
+                    "Enter".cyan()
+                );
+                println!(
+                    "  * If you want to abort, you can leave it blank and press Enter to return here."
+                );
                 println!("- To force-exit at any time, press {}.", "Ctrl+C".red());
                 println!("====================================\n");
             }
