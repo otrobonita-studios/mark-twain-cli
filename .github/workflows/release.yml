@@ -26,7 +26,11 @@ jobs:
             platform: linux
             arch: aarch64
             extension: tar.gz
-          - runner: macos-13
+          # Built on the Apple Silicon runner rather than macos-13: GitHub has
+          # retired the Intel macOS image, so that label no longer resolves to
+          # any runner and the job queues forever. Xcode ships both SDKs, so
+          # cross-compiling to x86_64 from arm64 needs no extra toolchain.
+          - runner: macos-latest
             target: x86_64-apple-darwin
             platform: macos
             arch: x86_64
