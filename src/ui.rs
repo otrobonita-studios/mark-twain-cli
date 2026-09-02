@@ -70,87 +70,119 @@ pub fn show_spinner(message: &str) -> ProgressBar {
     pb
 }
 
-// Helper to run a mocked/interactive style analysis using the search API to find stylistic matches
-pub async fn analyze_style_flow(api_client: &ApiClient, text: &str) {
-    let spinner = show_spinner("Analyzing stylistic fingerprint against Mark Twain's profile...");
+/// Plain counts over the input text. Descriptive only -- nothing here is
+/// evidence about authorship, and the renderer must not present it as such.
+#[derive(Debug, PartialEq)]
+pub struct TextStats {
+    pub words: usize,
+    pub characters: usize,
+    pub avg_word_len: f32,
+    pub exclamations: usize,
+    pub questions: usize,
+    pub dashes: usize,
+}
 
-    // Find the closest semantic/stylistic matches
-    match api_client.search(text, 3).await {
-        Ok(res) => {
-            spinner.finish_and_clear();
-            println!("\n{}", "=== STYLISTIC ANALYSIS REPORT ===".green().bold());
-
-            // Calculate simple stylistic markers
-            let words: Vec<&str> = text.split_whitespace().collect();
-            let word_count = words.len();
-            let avg_word_len = if word_count > 0 {
-                words.iter().map(|w| w.len()).sum::<usize>() as f32 / word_count as f32
-            } else {
+impl TextStats {
+    pub fn of(text: &str) -> Self {
+        let words: Vec<&str> = text.split_whitespace().collect();
+        let letters: usize = words.iter().map(|w| w.chars().count()).sum();
+        TextStats {
+            words: words.len(),
+            characters: text.chars().count(),
+            avg_word_len: if words.is_empty() {
                 0.0
-            };
-
-            let exclamations = text.matches('!').count();
-            let questions = text.matches('?').count();
-            let hyphens = text.matches('-').count();
-
-            println!(
-                "{:<30} {}",
-                "Input Word Count:".white(),
-                word_count.to_string().cyan()
-            );
-            println!("{:<30} {:.2}", "Average Word Length:".white(), avg_word_len);
-
-            // Formulate style notes based on punctuation and word count
-            let mut style_notes = Vec::new();
-            if avg_word_len > 6.0 {
-                style_notes.push("High vocabulary density and complex syllable structures.");
             } else {
-                style_notes
-                    .push("Simple, direct, and colloquial phrasing (characteristic of Twain).");
-            }
-            if exclamations > 0 || questions > 0 {
-                style_notes
-                    .push("Dramatic dialogic markers with highly active conversational tone.");
-            }
-            if hyphens > 1 {
-                style_notes.push("Frequent compounding and structural pauses.");
-            }
-
-            println!("\n{}", "Linguistic Fingerprints:".yellow().bold());
-            for note in style_notes {
-                println!("  * {}", note);
-            }
-
-            if !res.results.is_empty() {
-                let best_match = &res.results[0];
-                println!("\n{}", "Top Stylistic Matches in Corpus:".yellow().bold());
-                for (idx, result) in res.results.iter().enumerate() {
-                    println!(
-                        "  {}. [Similarity: {:.2}%] - Source: {} (Chunk #{})",
-                        idx + 1,
-                        result.score * 100.0,
-                        result.payload.filename.green(),
-                        result.payload.chunk_index.unwrap_or(0)
-                    );
-                }
-                println!("\n{}", "Nearest Matching Fragment:".white().bold());
-                println!(
-                    "{}",
-                    format!("\"{}\"", best_match.payload.text).italic().dimmed()
-                );
-            } else {
-                println!(
-                    "\n{}",
-                    "No direct matches found in the active corpus to compare style.".red()
-                );
-            }
-            println!("{}", "=================================".green().bold());
-        }
-        Err(e) => {
-            spinner.finish_and_clear();
-            println!("{} {}", "Error communicating with API:".red().bold(), e);
+                letters as f32 / words.len() as f32
+            },
+            exclamations: text.matches('!').count(),
+            questions: text.matches('?').count(),
+            dashes: text.matches('-').count(),
         }
     }
+}
+
+/// Finds the passages in the corpus closest to a piece of text.
+///
+/// This used to print invented conclusions -- "characteristic of Twain" for any
+/// text with short words -- under a "STYLISTIC ANALYSIS REPORT" heading. The
+/// thresholds were hardcoded and the verdicts were fixed strings, so the output
+/// looked authoritative while measuring nothing about authorship. See issue #6.
+///
+/// What remains is what the tool can actually establish: real similarity scores
+/// against the indexed corpus, and plain counts over the input, each labelled as
+/// what it is.
+pub async fn analyze_style_flow(api_client: &ApiClient, text: &str) {
+    let spinner = show_spinner("Searching the corpus for the closest passages...");
+    let result = api_client.search(text, 3).await;
+    spinner.finish_and_clear();
+
+    let res = match result {
+        Ok(res) => res,
+        Err(e) => {
+            println!("{} {}", "Error communicating with API:".red().bold(), e);
+            return;
+        }
+    };
+
+    println!(
+        "\n{}",
+        "=== CLOSEST PASSAGES IN THE CORPUS ===".green().bold()
+    );
+
+    if res.results.is_empty() {
+        println!(
+            "{}",
+            "No passages in the active corpus matched this text.".yellow()
+        );
+    } else {
+        for (idx, r) in res.results.iter().enumerate() {
+            println!(
+                "  {}. [Similarity: {:.2}%] {} (Chunk #{})",
+                idx + 1,
+                r.score * 100.0,
+                r.payload.filename.green(),
+                r.payload.chunk_index.unwrap_or(0)
+            );
+        }
+
+        println!("\n{}", "Nearest passage:".white().bold());
+        println!(
+            "{}",
+            format!("\"{}\"", res.results[0].payload.text)
+                .italic()
+                .dimmed()
+        );
+    }
+
+    // Descriptive counts, with no interpretation attached. Whether short words
+    // mean anything about Twain is a question this tool cannot answer, so it
+    // does not pretend to.
+    let stats = TextStats::of(text);
+    println!(
+        "\n{}",
+        "Input text (measured, not interpreted):".yellow().bold()
+    );
+    println!("  {:<24} {}", "Words:", stats.words.to_string().cyan());
+    println!(
+        "  {:<24} {}",
+        "Characters:",
+        stats.characters.to_string().cyan()
+    );
+    println!("  {:<24} {:.2}", "Average word length:", stats.avg_word_len);
+    println!(
+        "  {:<24} {} / {} / {}",
+        "! ? - counts:", stats.exclamations, stats.questions, stats.dashes
+    );
+
+    println!(
+        "\n{}",
+        "Similarity is semantic proximity to indexed passages. It is not a measure of authorship."
+            .dimmed()
+    );
+    println!(
+        "{}",
+        "======================================".green().bold()
+    );
 }
 
 /// Renders a list of search results.
@@ -224,7 +256,7 @@ impl MenuChoice {
             MenuChoice::Metadata => "View Database Metadata",
             MenuChoice::SemanticSearch => "Semantic Search",
             MenuChoice::KeywordSearch => "Exact Keyword Search",
-            MenuChoice::AnalyzeStyle => "Analyze Text Style",
+            MenuChoice::AnalyzeStyle => "Find Closest Passages",
             MenuChoice::Help => "Show Help / Instructions",
             MenuChoice::Exit => "Exit",
         }
@@ -249,7 +281,7 @@ fn print_help() {
         "Up/Down".cyan()
     );
     println!("- Press {} to select an option.", "Enter".cyan());
-    println!("- Inside prompts (Search / Style Analysis):");
+    println!("- Inside prompts (Search / Closest Passages):");
     println!(
         "  * Type your text and press {} to run the query.",
         "Enter".cyan()
@@ -369,7 +401,7 @@ pub async fn run_interactive_loop(api_client: &ApiClient) {
             MenuChoice::KeywordSearch => run_search(api_client, true).await,
             MenuChoice::AnalyzeStyle => {
                 let text: Result<String, _> = Input::with_theme(&ColorfulTheme::default())
-                    .with_prompt("Enter the text to analyze")
+                    .with_prompt("Enter the text to compare against the corpus")
                     .interact_text();
                 if let Ok(t) = text {
                     analyze_style_flow(api_client, &t).await;
@@ -389,6 +421,29 @@ pub async fn run_interactive_loop(api_client: &ApiClient) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn stats_are_plain_counts() {
+        let s = TextStats::of("Well, the first week went by!");
+        assert_eq!(s.words, 6);
+        assert_eq!(s.exclamations, 1);
+        assert_eq!(s.questions, 0);
+        assert_eq!(s.characters, 29);
+    }
+
+    #[test]
+    fn empty_input_does_not_divide_by_zero() {
+        let s = TextStats::of("   ");
+        assert_eq!(s.words, 0);
+        assert_eq!(s.avg_word_len, 0.0);
+    }
+
+    #[test]
+    fn average_word_length_ignores_whitespace() {
+        // "aaa bbb" -> 6 letters over 2 words, not 7 characters over 2.
+        let s = TextStats::of("aaa bbb");
+        assert_eq!(s.avg_word_len, 3.0);
+    }
 
     #[test]
     fn every_menu_variant_has_a_numbered_label() {
