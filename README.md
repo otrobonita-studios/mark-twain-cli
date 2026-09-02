@@ -24,6 +24,22 @@ You do **not** need Rust installed to run the pre-compiled binary. Simply run th
 curl -fsSL https://raw.githubusercontent.com/otrobonita-studios/mark-twain-cli/main/install.sh | bash
 ```
 
+The installer resolves the latest release, verifies the downloaded archive against
+the `SHA256SUMS` published with that release, and installs to `~/.local/bin`
+(`~/bin` under Git Bash). It refuses to install anything it cannot verify, and it
+tells you if the install directory is not on your `PATH`.
+
+Prebuilt binaries are published for:
+
+| Platform | Architectures |
+|----------|---------------|
+| Linux    | x86_64, aarch64 |
+| macOS    | x86_64 (Intel), aarch64 (Apple Silicon) |
+| Windows  | x86_64 |
+
+To verify a download by hand, or to install somewhere else, the release assets and
+`SHA256SUMS` are on the [releases page](https://github.com/otrobonita-studios/mark-twain-cli/releases).
+
 ---
 
 ## Configuration
